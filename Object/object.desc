@@ -1,0 +1,34 @@
+class Student(object):
+
+    def __init__(self, name, score):
+        self.name = name
+        self.score = score
+
+    def print_score(self):
+        print('%s: %s' % (self.name, self.score))
+        
+ 数据封装、继承和多态是面向对象的三大特点
+ 
+ init称为构造函数或者初始程序，初始化类或对象的实例，在这个_init_下，新创立的对象就是self.
+
+class Dog:
+    def init(self, legs, colour):
+        self.legs = legs
+        self.colour = colour
+
+fido = Dog(4, "brown")
+spot = Dog(3, "mostly yellow"
+
+对一只狗来说：_init_就是第一次写了一些信息的出生证明，几斤重，在哪里出生等等
+
+变量self就是它以后会成为的那条狗。而self.color 或者self.legs或self.xx就是它今后的改变会成为怎么样一只狗，黄色 3条腿或其他
+
+然后有个例子关于Class中的变量和 _init_函数中的变量的差别
+class MyClass(object):
+     i = 123
+     def _init_(self):
+         self.i = 345
+print（MyClass().i）
+345
+print（MyClass.i）
+123
