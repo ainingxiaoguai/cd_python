@@ -15,3 +15,18 @@ a1 = A('a1')
 print(a1.name) #result: a1
 a1.set_name('A1')
 print(a1.name)  #result: a1 这里不明白为啥还是打印出a1
+
+
+
+slots确实限制了类的实例可以添加的属性及方法 ,但没有限制类
+>>>class Student(object):
+...    __slots__ = ('name', 'age')
+...    def run(self):
+...        print('hi')
+...
+>>>s=Student()
+>>>Student.score=90
+>>>s.score
+90
+>>>s.run()
+hi
