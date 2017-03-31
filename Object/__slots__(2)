@@ -12,3 +12,5 @@ Student.set_city = MethodType(set_city, Student)
 a = Student()
 a.set_city(Beijing)
 a.city
+
+这里其实是给类添加了一个set_city属性，a.set_city('BeiJing')其实是调用了类的属性set_city，并给类添加了一个属性city
