@@ -1,0 +1,17 @@
+绑定方法
+class A(object):
+    def init(self,name):
+        self.name = name
+    def get_name(self):
+        print(self.name)
+def set_name(self,name):
+    self.name = name
+
+from types import MethodType
+
+A.set_name = MethodType(set_name,A)
+
+a1 = A('a1')
+print(a1.name) #result: a1
+a1.set_name('A1')
+print(a1.name)  #result: a1 这里不明白为啥还是打印出a1
