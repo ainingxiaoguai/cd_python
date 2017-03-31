@@ -1,0 +1,14 @@
+slots只能限制添加属性，不能限制通过添加方法来添加属性：
+
+def set_city(self, city):
+    self.city=city
+
+class Student(object):
+    __slots__ = ('name', 'age', 'set_city')
+    pass
+
+Student.set_city = MethodType(set_city, Student)
+
+a = Student()
+a.set_city(Beijing)
+a.city
