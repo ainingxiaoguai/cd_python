@@ -1,0 +1,57 @@
+今天在网上看到这样一个帖子，说的是python中__slots__的问题。
+代码1
+1>>> class A(object):
+2...     pass
+ ...
+3>>> class B(A):
+4...     __slots__='b'
+...
+5>>> x=B()
+6>>> x.e=2
+这里并没有抛出异常，照理说e并不在__slots__的列表里，__slots__列表里也没有__dict__，应该会抛出异常才对。
+看到这个帖子中的问题我也感到很疑惑，的确，这似乎和python文档中的描述不一致,于是我有写了下面这样一段代码:
+代码2
+1>>> class C(int):
+2...     __slots__='c'
+...
+3>>> y=C()
+4>>> y.c=1
+5>>> y.e=2
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+AttributeError: 'C' object has no attribute 'e'
+很奇怪，这里又抛出了异常。问题出在哪里？难道是int和class A有什么不同。
+进入python源码分析。
+先看看执行代码1中x.e时，python都做了什么:当执行x.e时python会调用PyObject_GenericGetAttr(PyObject *obj, PyObject *name)（object.c文件）来查找x.e的值,这个函数有好几个返回点，通过在每个返回点（即goto done;语句前）添加printf输出可以看到x.e会在这段代码执行后返回：
+        dictoffset = tp->tp_dictoffset;
+        if (dictoffset != 0) {
+        ......
+                                     //添加的额外输出
+                                printf("got value here_4!\n");
+                                goto done;
+                        }
+                        Py_DECREF(dict);
+                }
+        }
+而实验后发现代码2中y.e无法进入上面的if语句。由此可见tp_dictoffset等不等于0是这个问题的关键，x.e没抛出异常正是由于它的这个值不为零，而y.e这事因为这个值为零了而强行给y.e赋值造成的。实际上通过阅读代码可以发现tp_dictoffset正是为了用来帮助python虚拟机找的实例对象的tp_dict的指针用的，在ty_dict中保存了实例独有的属性。于是现在问题转为了tp_dictoffset到底什么时候为0,什么时候不为0。
+而这个值在class B和class C定义好后就确定下来了。
+将目光转向class B和class C创建的时候。class B和class C由type_new函数（typeobject.c中）创建。通过对源码的阅读发现，影响到tp_dictoffset值的关键变量有如下两个：
+may_add_dict//初始值为base->tp_dictoffset == 0，base为创建类（type）的主父类
+add_dict//该值确定了到底要不要设定tp_dictoffset的值
+在type的父类列表里的类（除去主父类）的tp_dictoffset值不为零时都将设定type的tp_dictoffset值（此外还有一些情况也会设定），使其不为零。
+但代码1是一个特例，在class B的构建过程中，在type_new函数中为tp_dictoffset赋值的代码段执行完后，它的tp_dictoffset任然为0：
+if (add_dict) {
+                if (base->tp_itemsize)
+                        type->tp_dictoffset = -(long)sizeof(PyObject *);
+                else
+                        type->tp_dictoffset = slotoffset;
+                slotoffset += sizeof(PyObject *);
+        }
+因为执行这段语句的时候add_dict为0,所以根本不会设定tp_dictoffset 的值。事实上，class B这种情况并不是在type_new本身中设定了tp_dictoffset的值，而是在type_new最好，它调用函数PyType_Ready函数进行初始化，再由PyType_Ready调用函数inherit_special，在inherit_special的最后由语句COPYVAL(tp_dictoffset);完成了对tp_dictoffset的设定。
+总结：
+事实上可以这样考虑这个问题：使用__slots__时，如果父类当中存在__dict__,则其将继承__dict__，于是执行代码1中的x.e=2这样的语句就不会抛出异常。而对于int这样的内建类型，我们认为它没有__dict__，因为查看源码可以看到PyInt_Type结构中，tp_dictoffset被设置成了0。
+此外，在type_new函数的代码中我们也可以看到，在多继承情况下，非主父类中存在__dict__也将会被子类继承。
+当然，不存在__dict__的类型不仅仅只有内建类型，用户定义的类型也可以不包含__dict__，比如将代码1中的类型A改为：
+class A(object):
+    __slots__=('a','b')
+这样以后执行到x.e=2也会抛出异常了。
