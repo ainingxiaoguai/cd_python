@@ -1,3 +1,5 @@
+http://blog.sina.com.cn/s/blog_6fe87f870101fjbf.html
+http://blog.csdn.net/sxingming/article/details/52892640
 今天在网上看到这样一个帖子，说的是python中__slots__的问题。
 代码1
 1>>> class A(object):
@@ -55,3 +57,6 @@ if (add_dict) {
 class A(object):
     __slots__=('a','b')
 这样以后执行到x.e=2也会抛出异常了。
+
+https://zhuanlan.zhihu.com/p/25930288?utm_source=tuicool&utm_medium=referral
+__slots__的用途
