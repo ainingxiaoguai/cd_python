@@ -30,7 +30,7 @@ A.set_name = MethodType(set_name,A)
 
 a1 = A('a1')
 print(a1.name) #result: a1
-a1.set_name('A1')
+a1.set_name('A1')这里其实是给类A添加类属性name，值为A1
 print(a1.name)  #result: a1 这里不明白为啥还是打印出a1
 
 
