@@ -1,0 +1,27 @@
+当step > 0 时
+切片从 start(含start)处开始，到end（不含end）处结束，**从左往右**，每隔（step-1）（索引之间的差仍为step，但相隔的元素是step-1个）个元素进行一次截取。
+这时，start 指向的位置应该在end指向的位置的左边，否则返回值为空
+
+当step < 0 时
+切片从 start(含start)处开始，到end（不含end）处结束，**从右往左**，每隔（step-1）（索引之间的差仍为step，但相隔的元素是step-1个）个元素进行一次截取。
+这时，start 指向的位置应该在end指向的位置的右边，否则返回值为空
+
+
+
+>>> x=[1,2,3,4,5]
+>>> x[2:0]=100     #在2后面插入若干个元素，应该用列表
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+TypeError: can only assign an iterable
+>>> x[2:0]=[100]
+>>> x
+[1, 2, 100, 3, 4, 5]
+>>> del x[2:3]     #删除切片
+>>> x
+[1, 2, 3, 4, 5]
+>>> x[2:1]=[100]   #对于切片x[from:to]，会进行预处理to=max(from+1,to)
+>>> x
+[1, 2, 100, 3, 4, 5]
+>>> del x[2:0]     #对于切片del操作，如果from>to,不执行任何操作
+>>> x
+[1, 2, 100, 3, 4, 5]
